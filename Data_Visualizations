@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import plotly.express as px
 
-df = pd.read_csv('/.../Housing_Affordability_cleaned.csv')
+df = pd.read_csv('/.../Dataset.csv')
 
 df = df.dropna()
 df = df.drop(['Rank', 
