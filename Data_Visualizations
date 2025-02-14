@@ -1,0 +1,72 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+import plotly.express as px
+
+df = pd.read_csv('/.../Housing_Affordability_cleaned.csv')
+
+df = df.dropna()
+df = df.drop(['Rank', 
+    'Gross Rental Yield City Centre',
+    'Gross Rental Yield Outside of Centre','Price To Rent Ratio City Centre',
+    'Price To Rent Ratio Outside Of City Centre'], axis=1)
+
+df['Year'] = pd.to_numeric(df['Year'], errors='coerce')
+df = df.sort_values(by='Year', na_position='last')
+
+def plot_COT():
+    df_grouped = df.groupby('Year')['Affordability Index'].mean().reset_index()
+    plt.figure(figsize=(10, 6))
+    plt.bar(df_grouped['Year'], df_grouped['Affordability Index'])
+    plt.xlabel('Year')
+    plt.ylabel('Affordability Index')
+    plt.title('Bar Plot of Affordability Index Over Time (Average Per Year)')
+    plt.grid(axis='y', linestyle='--', alpha=0.7)
+    plt.xticks(rotation=45, ha='right')
+    plt.tight_layout()
+    plt.show()
+
+def scatter():
+    df_grouped = df.groupby('Year')['Mortgage As A Percentage Of Income'].mean().reset_index()
+    plt.figure(figsize=(10, 6))
+    plt.plot(df_grouped['Year'], df_grouped['Mortgage As A Percentage Of Income'], marker='o', linestyle='-', color='b', linewidth=2, markersize=6)
+    plt.xlabel('Year')
+    plt.ylabel('Mortgage As A Percentage Of Income')
+    plt.title('Trend of Mortgage As A Percentage Of Income Over Time (Average Per Year)')
+    plt.grid(axis='y', linestyle='--', alpha=0.7)
+    plt.xticks(rotation=45, ha='right')
+    plt.tight_layout()
+    plt.show()
+
+def world_map():
+    df[['City', 'Country']] = df['City'].str.split(',', n=1, expand=True)
+    df['Change in Affordability Index'] = df.groupby('Country')['Affordability Index'].diff()
+    df = df.dropna(subset=['Change in Affordability Index'])
+    
+    fig = px.choropleth(df, 
+                        locations='Country', 
+                        locationmode='country names',
+                        color='Change in Affordability Index',
+                        hover_name='Country',
+                        color_continuous_scale='YlGnBu',
+                        title='Change in Affordability Index Over Time')
+    fig.show()
+
+def avg_barplot():
+    df['Period'] = df['Year'].apply(lambda x: '2015-2019' if 2015 <= x <= 2019 else '2020-2025')
+    df_grouped = df.groupby('Period')['Price To Income Ratio'].mean().reset_index()
+    print(df_grouped)
+    plt.figure(figsize=(10, 6))
+    colors = ['#1f77b4', '#ff7f0e']
+    plt.bar(df_grouped['Period'], df_grouped['Price To Income Ratio'], color=colors)
+    plt.xlabel('Prior to COVID-19 Vs. During & After COVID Years')
+    plt.ylabel('Average Price To Income Ratio')
+    plt.title('Average Price To Income Ratio Before COVID-19 Compared To During & After COVID-19')
+    plt.grid(axis='y', linestyle='--', alpha=0.7)  # Add gridlines only to the y-axis
+    plt.tight_layout()
+    plt.show()
+
+scatter()
+plot_COT()
+world_map()
+avg_barplot()
